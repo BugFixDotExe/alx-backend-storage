@@ -1,1 +1,3 @@
 //This is a MondoDB Script for listing all the databases
+show dbs
+

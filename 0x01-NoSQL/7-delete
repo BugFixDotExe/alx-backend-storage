@@ -1,0 +1,3 @@
+// A script that deletes all the docs with a filter assigned
+db.school.deleteMany({name:"Holberton school"})
+
