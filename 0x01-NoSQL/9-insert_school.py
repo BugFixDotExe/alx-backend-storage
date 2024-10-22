@@ -23,4 +23,3 @@ def insert_school(mongo_collection, **kwargs):
         added_item = mongo_collection.insert_one(kwargs)
         if added_item is not None:
             return added_item.inserted_id
-
