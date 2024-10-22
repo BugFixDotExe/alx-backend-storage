@@ -19,10 +19,4 @@ def schools_by_topic(mongo_collection, topic):
     ret_obj = []
     if (isinstance(topic, str) is False or len(topic) == 0):
         return None
-    else:
-        for doc in mongo_collection.find({}):
-            single_topic = doc.get('topics')
-            if single_topic is not None:
-                if topic in single_topic:
-                    ret_obj.append(doc)
-    return ret_obj
+    return list(mongo_collection.find({'topics': topic}))
