@@ -6,98 +6,72 @@ For this project, I began practicing using Redis for my specialization into back
 
 ## Tasks :page_with_curl:
 
+
 * **0.  Writing strings to Redis**
-  * [0-list_databases](./0-list_databases): Write a script that lists all databases in MongoDB.
+  * [exercise](./exercise.py): Create a Cache class. In the __init__ method, store an instance of the Redis client as a private variable named _redis (using redis.Redis()) and flush the instance using flushdb.
+
+  Create a store method that takes a data argument and returns a string. The method should generate a random key (e.g. using uuid), store the input data in Redis using the random key and return the key.
+
+  Type-annotate store correctly. Remember that data can be a str, bytes, int or float.
 
 
-* **1. Create a database**
-    * [1-use_or_create_database](./1-use_or_create_database): Write a script that creates or uses the database my_db.
+* **1.  Reading from Redis and recovering original type**
+    * [exercise](./exercise.py): Redis only allows to store string, bytes and numbers (and lists thereof). Whatever you store as single elements, it will be returned as a byte string. Hence if you store "a" as a UTF-8 string, it will be returned as b"a" when retrieved from the server.
+
+    In this exercise we will create a get method that take a key string argument and an optional Callable argument named fn. This callable will be used to convert the data back to the desired format.
+
+    Remember to conserve the original Redis.get behavior if the key does not exist.
+
+    Also, implement 2 new methods: get_str and get_int that will automatically parametrize Cache.get with the correct conversion function.
 
 
-* **2. Insert document**
-  * [2-insert](./2-insert): Write a script that inserts a document in the collection school:
+* **2. Incrementing values**
+  * [exercise](./exercise.py): Familiarize yourself with the INCR command and its python equivalent.
 
-    The document must have one attribute name with value “Holberton school”
-    The database name will be passed as option of mongo command
+    In this task, we will implement a system to count how many times methods of the Cache class are called.
 
+    Above Cache define a count_calls decorator that takes a single method Callable argument and returns a Callable.
 
-* **3. All documents**
-  * [3-all](./3-all): Write a script that lists all documents in the collection school:
+    As a key, use the qualified name of method using the __qualname__ dunder method.
 
-    The database name will be passed as option of mongo command
+    Create and return function that increments the count for that key every time the method is called and returns the value returned by the original method.
 
+    Remember that the first argument of the wrapped function will be self which is the instance itself, which lets you access the Redis instance.
 
-* **4. All matches**
-  * [4-match](./4-match): Write a script that lists all documents with name="Holberton school" in the collection school:
+    Protip: when defining a decorator it is useful to use functool.wraps to conserve the original function’s name, docstring, etc. Make sure you use it as described here.
 
-    The database name will be passed as option of mongo command
-
-
-* **5. Count**
-  * [5-count](./5-count): Write a script that displays the number of documents in the collection school:
-
-    The database name will be passed as option of mongo command
+    Decorate Cache.store with count_calls.
 
 
-* **6. Update**
-  * [6-update](./6-update): Write a script that adds a new attribute to a document in the collection school:
+* **3.  Storing lists**
+  * [exercise](./exercise.py): Familiarize yourself with redis commands RPUSH, LPUSH, LRANGE, etc.
 
-    The script should update only document with name="Holberton school" (all of them)
-    The update should add the attribute address with the value “972 Mission street”
-    The database name will be passed as option of mongo command
+    In this task, we will define a call_history decorator to store the history of inputs and outputs for a particular function.
 
+    Everytime the original function will be called, we will add its input parameters to one list in redis, and store its output into another list.
 
-* **7. Delete by match**
-  * [7-delete](./7-delete): Write a script that deletes all documents with name="Holberton school" in the collection school:
+    In call_history, use the decorated function’s qualified name and append ":inputs" and ":outputs" to create input and output list keys, respectively.
 
-    The database name will be passed as option of mongo command
+    call_history has a single parameter named method that is a Callable and returns a Callable.
 
+    In the new function that the decorator will return, use rpush to append the input arguments. Remember that Redis can only store strings, bytes and numbers. Therefore, we can simply use str(args) to normalize. We can ignore potential kwargs for now.
 
-* **8. List all documents in Python**
-  * [8-all](./8-all.py): Write a Python function that lists all documents in a collection:
+    Execute the wrapped function to retrieve the output. Store the output using rpush in the "...:outputs" list, then return the output.
 
-    Prototype: def list_all(mongo_collection):
-    Return an empty list if no document in the collection
-    mongo_collection will be the pymongo collection object
+    Decorate Cache.store with call_history.
 
 
-* **9. Insert a document in Python**
-  * [9-insert_school](./9-insert_school.py): Write a Python function that inserts a new document in a collection based on kwargs:
+* **4. Retrieving lists**
+  * [exercise](./exercise.py): In this tasks, we will implement a replay function to display the history of calls of a particular function.
 
-    Prototype: def insert_school(mongo_collection, **kwargs):
-    mongo_collection will be the pymongo collection object
-    Returns the new _id
+Use keys generated in previous tasks to generate the following output:
 
-
-* **10. Change school topics**
-  * [10-update_topics](./10-update_topics.py): Write a Python function that changes all topics of a school document based on the name:
-
-    Prototype: def update_topics(mongo_collection, name, topics):
-    mongo_collection will be the pymongo collection object
-    name (string) will be the school name to update
-    topics (list of strings) will be the list of topics approached in the school
-
-
-* **11. Where can I learn Python?**
-  * [11-schools_by_topic](./11-schools_by_topic.py): Write a Python function that returns the list of school having a specific topic:
-
-    Prototype: def schools_by_topic(mongo_collection, topic):
-    mongo_collection will be the pymongo collection object
-    topic (string) will be topic searched
-
-
-* **12. Log stats**
-  * [12-log_stats](./12-log_stats.py): Write a Python script that provides some stats about Nginx logs stored in MongoDB:
-
-    Database: logs
-    Collection: nginx
-    Display (same as the example):
-        first line: x logs where x is the number of documents in this collection
-        second line: Methods:
-        5 lines with the number of documents with the method = ["GET", "POST", "PUT", "PATCH", "DELETE"] in this order (see example below - warning: it’s a tabulation before each line)
-        one line with the number of documents with:
-            method=GET
-                path=/status
-
-    You can use this dump as data sample: dump.zip
-
+    >>> cache = Cache()
+    >>> cache.store("foo")
+    >>> cache.store("bar")
+    >>> cache.store(42)
+    >>> replay(cache.store)
+    Cache.store was called 3 times:
+    Cache.store(*('foo',)) -> 13bf32a9-a249-4664-95fc-b1062db2038f
+    Cache.store(*('bar',)) -> dcddd00c-4219-4dd7-8877-66afbe8e7df8
+    Cache.store(*(42,)) -> 5e752f2b-ecd8-4925-a3ce-e2efdee08d20
