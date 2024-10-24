@@ -18,6 +18,18 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def call_history(method: Callable) -> Callable:
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        # use rpush here to append the input args
+        self._redis.rpush(f'{method.__qualname__}:inputs', str(args))
+        output = method(self, *args, **kwargs)
+        self._redis.rpush(f'{method.__qualname__}:outputs', output)
+        return output
+        return self._redis.lrange(method.__qualname__, 0, -1)
+    return wrapper
+
+
 class Cache:
     '''
     class (Cache): a class that serves as the blueprint for
@@ -34,7 +46,9 @@ class Cache:
         self._redis.flushdb()
 
     @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
+
         '''
         store: a function that returns the uuid key for th db obj
         Args: data the input data of types str, bytes, int, float
