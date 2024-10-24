@@ -7,7 +7,14 @@ and flush the instance using the flushdb
 import redis
 import uuid
 from typing import Union, Optional, Callable
+from functools import wraps
 
+
+
+def count_calls(method: Callable) -> Callable:
+    @wraps(method)
+    def wrapper(*args, **kwargs):
+        pass
 
 class Cache:
     '''
@@ -35,7 +42,7 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: Optional[Callable]):
+    def get(self, key: str, fn: Optional[Callable] = None):
         value = self._redis.get(key)
         if value is None:
             return None
@@ -43,7 +50,7 @@ class Cache:
         if fn is None:
             return value
         if 'int' in str(fn):
-            raise ValueError('int')
+            raise ValueError('error')
         if 'function' in str(fn):
             return self.get_str(value)
 
