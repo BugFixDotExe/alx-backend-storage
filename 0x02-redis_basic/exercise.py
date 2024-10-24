@@ -24,7 +24,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
-    def store(self, data: Union[str, bytes, int, float]):
+    def store(self, data: Union[str, bytes, int, float]) -> str:
         '''
         store: a function that returns the uuid key for th db obj
         Args: data the input data of types str, bytes, int, float
@@ -37,23 +37,18 @@ class Cache:
 
     def get(self, key: str, fn: Optional[Callable]):
         value = self._redis.get(key)
-        print(isinstance(fn, int))
         if value is None:
             return None
 
-        if (fn is None):
+        if fn is None:
             return value
-
-        if (callable(fn) is True):
-            return self.get_str(value)
-
-        if type(fn) is int:
-            print('int called')
+        if 'int' in str(fn):
             return self.get_int(value)
+        if 'function' in str(fn):
+            return self.get_str(value)
 
     def get_str(self, value):
         return value.decode('utf-8')
 
     def get_int(self, value):
-       return int(value)
-        
+        return int(value)
