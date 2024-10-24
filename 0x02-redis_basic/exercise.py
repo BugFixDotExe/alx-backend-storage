@@ -43,7 +43,7 @@ class Cache:
         if fn is None:
             return value
         if 'int' in str(fn):
-            return self.get_int(value)
+            raise ValueError('int')
         if 'function' in str(fn):
             return self.get_str(value)
 
